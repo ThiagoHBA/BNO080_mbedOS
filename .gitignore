@@ -32,4 +32,6 @@
 *.app
 
 BUILD/
-mbed-os/
+*mbed-os/
+GettingStarted.html
+	
