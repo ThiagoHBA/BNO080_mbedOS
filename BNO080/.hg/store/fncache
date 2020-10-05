@@ -1,0 +1,5 @@
+data/BNO080Constants.h.i
+data/BNO080.h.i
+data/tmatrix.h.i
+data/quaternion.h.i
+data/BNO080.cpp.i
