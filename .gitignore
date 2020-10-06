@@ -34,4 +34,6 @@
 BUILD/
 *mbed-os/
 GettingStarted.html
+BUILD
+.mbed
 	

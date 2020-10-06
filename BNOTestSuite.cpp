@@ -7,13 +7,16 @@
 #include "BNOTestSuite.h"
 #include <sstream>
 #include <cinttypes>
+#include <iostream>
+#include "mbed.h"
 
 #define RAD_TO_DEG (180.0/M_PI)
 
 using namespace std;
+using namespace std::chrono;
+
 
 ostringstream ss;
-
 void BNOTestSuite::test_printInfo()
 {
 	pc.printf("BNO080 reports as SW version %" PRIu8 ".%" PRIu8 ".%" PRIu16", build %" PRIu32 ", part no. %" PRIu32"\n",
@@ -21,8 +24,7 @@ void BNOTestSuite::test_printInfo()
 			imu.buildNumber, imu.partNumber);
 }
 
-
-void BNOTestSuite::test_readRotationVector()
+void BNOTestSuite::test_readRotationVector() 
 {
 	const size_t update_rate_ms = 200;
 
@@ -36,10 +38,10 @@ void BNOTestSuite::test_readRotationVector()
 		{
         	TVector3 eulerRadians = imu.rotationVector.euler();
         	TVector3 eulerDegrees = eulerRadians * RAD_TO_DEG;
+            
 
 			pc.printf("IMU Rotation Euler: %f || Roll: %f deg, Pitch: %f deg, Yaw: %f deg \r\n", (float)5.55,
 					   (float)eulerDegrees[0],(float)eulerDegrees[1], (float)eulerDegrees[2]);
-			//pc.printf("%d,%d,%d",5.55,eulerDegrees[1], eulerDegrees[2]);
 
         	pc.printf(", Accuracy: %.02f", (imu.rotationAccuracy * RAD_TO_DEG));
 
@@ -52,29 +54,45 @@ void BNOTestSuite::test_readRotationVector()
     }
 }
 
-void BNOTestSuite::test_readRotationAcceleration()
+void BNOTestSuite::test_readRotationAcceleration() // SPIPRINT
 {
-	imu.enableReport(BNO080::ROTATION, 1000);
-	imu.enableReport(BNO080::TOTAL_ACCELERATION, 500);
+	imu.enableReport(BNO080::ROTATION, 10);
+	imu.enableReport(BNO080::LINEAR_ACCELERATION, 10);
+
+	while (true)
+	{
+		ThisThread::sleep_for(1ms);
+        
+		if(imu.updateData())
+		{  
+            
+			TVector3 eulerRadians = imu.rotationVector.euler();
+			TVector3 eulerDegrees = eulerRadians * (180.0 / M_PI);
+
+			//imu.linearAcceleration.print(pc, true);
+            printf("%f : %f : %f : ",imu.linearAcceleration[0],imu.linearAcceleration[1],imu.linearAcceleration[2]);
+            printf("%f : %f : %f \n",eulerDegrees[0],eulerDegrees[1],eulerDegrees[2]);
+            //eulerDegrees.print(pc, true);
+			//pc.printf("\n");
+		}
+        
+	}
+}
+
+void BNOTestSuite::test_readLinearAcceleration()
+{
+	imu.enableReport(BNO080::LINEAR_ACCELERATION, 10);
 
 	while (true)
 	{
 		ThisThread::sleep_for(1ms);
 
 		if(imu.updateData())
-		{/* 
-			if (imu.hasNewData(BNO080::ROTATION))
+		{
+			if (imu.hasNewData(BNO080::LINEAR_ACCELERATION))
 			{
-				pc.printf("IMU Rotation Euler: ");
-				TVector3 eulerRadians = imu.rotationVector.euler();
-				TVector3 eulerDegrees = eulerRadians * (180.0 / M_PI);
-				eulerDegrees.print(pc, true);
-				pc.printf("\n");
-			}*/
-			if (imu.hasNewData(BNO080::TOTAL_ACCELERATION))
-			{
-				pc.printf("IMU Total Acceleration: ");
-				imu.totalAcceleration.print(pc, true);
+				pc.printf("IMU Linear Acceleration: ");
+				imu.linearAcceleration.print(pc, true);
 				pc.printf("\n");
 			}
 		}
@@ -442,9 +460,9 @@ int main()
 
 	//MENU. ADD OPTION PER EACH TEST
 	pc.printf("Select a test: \n\r");
-	pc.printf("1. Print chip info\r\n");
+	pc.printf("1. Print linearAcceleration\r\n");
 	pc.printf("2. Display rotation vector\r\n");
-	pc.printf("3. /*Display rotation and*/ acceleration\r\n");
+	pc.printf("3. Display rotation and acceleration |Envio para raspberry| \r\n");
 	pc.printf("4. Run tap detector\r\n");
 	pc.printf("5. Display game rotation vector\r\n");
 	pc.printf("6. Test tare function\r\n");
@@ -462,9 +480,8 @@ int main()
 
 	//SWITCH. ADD CASE PER EACH TEST
 	switch(test){
-		case 1:
-			harness.test_printInfo();
-			break;
+        case 1:
+            harness.test_readLinearAcceleration();
 		case 2:
 			harness.test_readRotationVector();
 			break;

@@ -45,4 +45,6 @@ public:
 
 	void test_disable();
 
+    void test_readLinearAcceleration();
+
 };
