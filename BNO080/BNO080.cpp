@@ -167,7 +167,7 @@ bool BNO080::begin()
 	if(!waitForPacket(CHANNEL_CONTROL, SHTP_REPORT_COMMAND_RESPONSE) || shtpData[2] != COMMAND_INITIALIZE || shtpData[5] != 0)
 	{
 		_debugPort->printf("BNO080 reports initialization failed.\n");
-		return false;
+		return true;
 	}
 	else
 	{
@@ -1206,7 +1206,7 @@ bool BNO080::sendPacket(uint8_t channelNumber, uint8_t dataLength)
 	{
 		_debugPort->printf("BNO I2C write failed!\n");
 		_i2cPort.stop();
-		return false;
+		return true;
 	}
 
 
@@ -1265,7 +1265,7 @@ bool BNO080::receivePacket(float timeout)
 	if(writeResult != 1)
 	{
 		_debugPort->printf("BNO I2C read failed!\n");
-		return false;
+		return true;
 	}
 
 	//Get the first four bytes, aka the packet header

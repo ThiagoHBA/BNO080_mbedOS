@@ -3,20 +3,24 @@
 	Contributors: Lauren Potterat 
 */
 
-
 #include "BNOTestSuite.h"
 #include <sstream>
 #include <cinttypes>
 #include <iostream>
+#include <chrono>
 #include "mbed.h"
+#include "rtos.h"
 
 #define RAD_TO_DEG (180.0/M_PI)
 
 using namespace std;
-using namespace std::chrono;
+using namespace chrono;
 
 
 ostringstream ss;
+Timer tempo_millis;
+
+
 void BNOTestSuite::test_printInfo()
 {
 	pc.printf("BNO080 reports as SW version %" PRIu8 ".%" PRIu8 ".%" PRIu16", build %" PRIu32 ", part no. %" PRIu32"\n",
@@ -54,27 +58,32 @@ void BNOTestSuite::test_readRotationVector()
     }
 }
 
-void BNOTestSuite::test_readRotationAcceleration() // SPIPRINT
+void BNOTestSuite::test_readRotationAcceleration() // SPI_PRINT
 {
 	imu.enableReport(BNO080::ROTATION, 10);
 	imu.enableReport(BNO080::LINEAR_ACCELERATION, 10);
+    
+    
 
 	while (true)
 	{
+        tempo_millis.start();
+
 		ThisThread::sleep_for(1ms);
-        
+
 		if(imu.updateData())
 		{  
             
 			TVector3 eulerRadians = imu.rotationVector.euler();
 			TVector3 eulerDegrees = eulerRadians * (180.0 / M_PI);
-
-			//imu.linearAcceleration.print(pc, true);
+            
             printf("%f : %f : %f : ",imu.linearAcceleration[0],imu.linearAcceleration[1],imu.linearAcceleration[2]);
-            printf("%f : %f : %f \n",eulerDegrees[0],eulerDegrees[1],eulerDegrees[2]);
-            //eulerDegrees.print(pc, true);
-			//pc.printf("\n");
+            printf("%f : %f : %f : ",eulerDegrees[0],eulerDegrees[1],eulerDegrees[2]);
+            tempo_millis.stop();
+            printf("%llu\n", duration_cast<milliseconds>(tempo_millis.elapsed_time()).count());
 		}
+
+        
         
 	}
 }
